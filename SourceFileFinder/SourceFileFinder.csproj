@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>SourceFileFinder</PackageId>
     <Title>SourceFileFinder</Title>
-    <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in assembly through a portable PDB.</Description>
+    <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in the types assembly through the related portable PDB.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/egil/SourceFileFinder</PackageProjectUrl>
     <RepositoryUrl>https://github.com/egil/SourceFileFinder.git</RepositoryUrl>

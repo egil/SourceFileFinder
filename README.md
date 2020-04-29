@@ -1,5 +1,5 @@
 # Source File Finder
-Allows you to find the source file for a type at runtime, if that file is available on the local file system.
+A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in the types assembly through the related portable PDB.
 
 ```csharp
 var target = typeof(MyType);
