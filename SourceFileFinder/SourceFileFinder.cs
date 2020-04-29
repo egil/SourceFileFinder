@@ -199,7 +199,9 @@ namespace ReflectionHelpers
             }
         }
 
+
         /// <inheritdoc/>
+        [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Dispose should not throw... right?")]
         public void Dispose()
         {
             if (_pEReader is { })
