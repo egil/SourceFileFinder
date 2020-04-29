@@ -1,45 +1,57 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
-using System.Text;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ReflectionHelpers
 {
+
     /// <summary>
     /// Represents a helper utility that can find a source file for 
     /// a type or method that is a part of a compiled assembly.
     /// </summary>
     public class SourceFileFinder : IDisposable
     {
-        private bool _isDisposed = false;
-        private FileStream? _fileReader = null;
+        private static readonly Guid CSharpLanguage = Guid.Parse("3f5162f8-07c6-11d3-9053-00c04fa302a1");
+        private static readonly Guid FSharpLanguage = Guid.Parse("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
+        private static readonly Guid VBLanguage = Guid.Parse("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
+
+        private readonly CSharpTypeLocator _csharpTypeLocator = new CSharpTypeLocator();
+
+        private FileStream? _dllFileReader = null;
+        private FileStream? _pdbFileReader = null;
         private PEReader? _pEReader = null;
         private MetadataReaderProvider? _metadataReaderProvider = null;
         private MetadataReader? _metadataReader = null;
         private MetadataReader? _pdbReader = null;
 
+        /// <summary>
+        /// Gets the MetadataReader for the <see cref="SearchAssembly"/>.
+        /// </summary>
         protected MetadataReader MetadataReader
         {
             get
             {
                 if (_metadataReader is null)
-                    Initialized();
+                    Initialize();
 
                 return _metadataReader!; // BANG! because Initialized() should set _metadateReader.
             }
         }
+
+        /// <summary>
+        /// Gets the MetadataReader for the PDB for the <see cref="SearchAssembly"/>.
+        /// </summary>
         protected MetadataReader PdbReader
         {
             get
             {
                 if (_pdbReader is null)
-                    Initialized();
+                    Initialize();
 
                 return _pdbReader!; // BANG! because Initialized() should set _pdbReader.
             }
@@ -64,24 +76,33 @@ namespace ReflectionHelpers
         /// </summary>
         /// <param name="target">Type whose source to attempt to find.</param>
         /// <returns>A list of files the <paramref name="target"/> type is defined in.</returns>
-        public IReadOnlyList<FileInfo> Find(Type target)
+        public IReadOnlyList<string> Find(Type target)
         {
             if (target is null)
                 throw new ArgumentNullException(nameof(target));
             if (target.Assembly != SearchAssembly)
                 throw new InvalidOperationException($"The type '{target.FullName}' does not belong to finder's search assembly '{SearchAssembly.FullName}'.");
 
-            var result = new List<FileInfo>();
+            var result = new List<string>();
 
-            GetByMethods(target, result);
+            var typeDefinition = GetTypeDefinition(target);
+
+            FindFilesViaMethods(typeDefinition, result);
+
+            // TODO: Detect if FindFilesViaDocuments is needed, e.g. if type is partial or result is empty.
+            FindFilesViaDocuments(target, result);
 
             return result;
         }
 
-        private void GetByMethods(Type target, List<FileInfo> result)
+        private TypeDefinition GetTypeDefinition(Type target)
         {
             var typeDefinitionHandle = (TypeDefinitionHandle)MetadataTokens.Handle(target.GetMetadataToken());
-            var typeDefinition = MetadataReader.GetTypeDefinition(typeDefinitionHandle);
+            return MetadataReader.GetTypeDefinition(typeDefinitionHandle);
+        }
+
+        private void FindFilesViaMethods(TypeDefinition typeDefinition, List<string> result)
+        {
 
             foreach (var handle in typeDefinition.GetMethods())
             {
@@ -98,68 +119,106 @@ namespace ReflectionHelpers
 
                 var filename = PdbReader.GetString(doc.Name);
 
-                if (File.Exists(filename) && !result.Any(x => x.FullName == filename))
-                {
-                    result.Add(new FileInfo(filename));
-                }
+                if (result.Contains(filename))
+                    continue;
+
+                if (!File.Exists(filename))
+                    continue;
+
+                result.Add(filename);
+            }
+        }
+        
+        private void FindFilesViaDocuments(Type target, List<string> result)
+        {
+            foreach (var handle in PdbReader.Documents)
+            {
+                if (handle.IsNil)
+                    continue;
+
+                var doc = PdbReader.GetDocument(handle);
+
+                if (doc.Name.IsNil)
+                    continue;
+
+                if (doc.Language.IsNil)
+                    continue;
+
+                var language = PdbReader.GetGuid(doc.Language);
+                var filename = PdbReader.GetString(doc.Name);
+
+                if (result.Contains(filename))
+                    continue;
+
+                if (language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
+                    result.Add(filename);
             }
         }
 
-        private void Initialized()
+        private void Initialize()
         {
-            if (_fileReader is null)
-                _fileReader = File.OpenRead(SearchAssembly.Location);
+            if (_dllFileReader is null)
+                _dllFileReader = File.OpenRead(SearchAssembly.Location);
 
             if (_pEReader is null)
-                _pEReader = new PEReader(_fileReader);
+                _pEReader = new PEReader(_dllFileReader);
 
             if (_metadataReader is null && _pdbReader is null)
             {
-                var pdbFound = _pEReader.TryOpenAssociatedPortablePdb(SearchAssembly.Location,
-                    pdb => File.OpenRead(pdb),
-                    out var metadataReaderProvider,
-                    out var pdbPath);
+                bool pdbFound = false;
+                try
+                {
+                    pdbFound = _pEReader.TryOpenAssociatedPortablePdb(SearchAssembly.Location,
+                        pdbPath =>
+                        {
+                            _pdbFileReader = File.OpenRead(pdbPath);
+                            return _pdbFileReader;
+                        },
+                        out var metadataReaderProvider,
+                        out var pdbPath);
+
+                    _metadataReaderProvider = metadataReaderProvider;
+                    _metadataReader = _pEReader.GetMetadataReader();
+                    _pdbReader = _metadataReaderProvider.GetMetadataReader();
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"An error occurred while searching for the PDB for the assembly '{SearchAssembly.FullName}' with path '{SearchAssembly.Location}'.", ex);
+                }
 
                 if (!pdbFound)
-                    throw new InvalidOperationException($"No portable PDB file was found for the assembly '{SearchAssembly.FullName}' with path '{SearchAssembly.Location}'");
-
-                _metadataReaderProvider = metadataReaderProvider;
-                _metadataReader = _pEReader.GetMetadataReader();
-                _pdbReader = _metadataReaderProvider.GetMetadataReader();
+                    throw new InvalidOperationException($"No portable PDB was found for the assembly '{SearchAssembly.FullName}' with path '{SearchAssembly.Location}'.");
             }
         }
 
         /// <inheritdoc/>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        /// <summary>
-        /// Override this to dispose additional resources when deriving from this class.
-        /// </summary>
-        /// <param name="disposing">True to dispose.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_isDisposed)
+            if (_pEReader is { })
             {
-                if (disposing)
-                {
-                    // TODO: Remarks in docs says to dispose in a try/catch block,
-                    // but what exception should catch and what do do?
-                    // https://docs.microsoft.com/en-us/dotnet/api/system.io.filestream?view=netcore-3.1#remarks
-                    if (_fileReader is { })
-                        _fileReader.Dispose();
+                _pEReader.Dispose();
+                _pEReader = null;
+            }
 
-                    if (_pEReader is { })
-                        _pEReader.Dispose();
+            if (_metadataReaderProvider is { })
+            {
+                _metadataReaderProvider.Dispose();
+                _metadataReaderProvider = null;
+            }
 
-                    if (_metadataReaderProvider is { })
-                        _metadataReaderProvider.Dispose();
-                }
+            // TODO: Remarks in docs says to dispose in a try/catch block,
+            // but what exception should catch and what do do?
+            // https://docs.microsoft.com/en-us/dotnet/api/system.io.filestream?view=netcore-3.1#remarks
+            if (_dllFileReader is { })
+            {
+                _dllFileReader.Dispose();
+                _dllFileReader = null;
+            }
 
-                _isDisposed = true;
+            if (_pdbFileReader is { })
+            {
+                _pdbFileReader.Dispose();
+                _pdbFileReader = null;
             }
         }
     }

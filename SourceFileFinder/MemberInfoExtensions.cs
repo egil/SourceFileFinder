@@ -9,7 +9,7 @@ namespace ReflectionHelpers
 {
     /// <summary>
     /// Extensions for <see cref="MemberInfo"/>.
-    /// Copied from <see cref="https://source.dot.net/#System.Reflection.TypeExtensions/System/Reflection/TypeExtensions.cs,277"/>.
+    /// Copied from https://source.dot.net/#System.Reflection.TypeExtensions/System/Reflection/TypeExtensions.cs,277.
     /// </summary>
     public static class MemberInfoExtensions
     {

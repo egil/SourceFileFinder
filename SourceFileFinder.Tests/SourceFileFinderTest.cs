@@ -4,9 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using ReflectionHelpers.Cases;
+using ReflectionHelpers.Cases.SubCases;
 using Shouldly;
 using Xunit;
 using Xunit.Sdk;
+using static ReflectionHelpers.Cases.OuterClass;
+using static ReflectionHelpers.Cases.SubCases.OuterClass;
 
 namespace ReflectionHelpers
 {
@@ -61,23 +64,28 @@ namespace ReflectionHelpers
             Should.Throw<InvalidOperationException>(() => sut.Find(target));
         }
 
-        // No portable PDB file was found for assembly
-        // The method's DeclaringType property is null
 
-        [Theory(DisplayName = "Find(type) can find source file for class with one or more methods")]
+        [Theory(DisplayName = "Find(type) can find source file for class")]
+        [InlineData(typeof(EmptyClass))]
+        [InlineData(typeof(ClassWithLineHidden))]
+        [InlineData(typeof(EmptyClassInNestedNamespace))]
+        [InlineData(typeof(NestedEmptyClass))]
+        [InlineData(typeof(NestedEmptyClassInNestedNamespace))]
+        [InlineData(typeof(ClassWithoutNamespace))]
+        [InlineData(typeof(EmptyClassWithoutNamespace))]        
+        [InlineData(typeof(ClassWithCtor))]
         [InlineData(typeof(PublicMethodClass))]
         [InlineData(typeof(OverriddenPublicMethodClass))]
         [InlineData(typeof(ProtectedMethodClass))]
         [InlineData(typeof(OverriddenProtectedMethodClass))]
         [InlineData(typeof(PrivateMethodClass))]
-        public void Test100(Type target)
+        public void FindsFiles(Type target)
         {
             using var sut = CreateSut();
 
             var result = sut.Find(target);
 
             result.Single()
-                .FullName
                 .ShouldEndWith($@"SourceFileFinder.Tests\Cases\{target.Name}.cs");
         }
 
@@ -91,10 +99,11 @@ namespace ReflectionHelpers
             var result = sut.Find(target);
 
             result.Count.ShouldBe(2);
-            result.ShouldContain(file => file.FullName.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.1.cs"));
-            result.ShouldContain(file => file.FullName.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.2.cs"));
+            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.1.cs"));
+            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.2.cs"));
         }
 
-        // Find(type), where type has no methods, finds source file, when there are no two types in the assembly with same name
+        // No portable PDB file was found for assembly
+        // test with pdbonly and Deterministic  builds
     }
 }
