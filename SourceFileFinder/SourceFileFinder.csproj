@@ -6,7 +6,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>SourceFileFinder</PackageId>
     <Title>SourceFileFinder</Title>
-    <Version>1.0.0-beta-1</Version>
     <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in assembly through a portable PDF file.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/egil/SourceFileFinder</PackageProjectUrl>

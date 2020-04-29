@@ -90,7 +90,8 @@ namespace ReflectionHelpers
             FindFilesViaMethods(typeDefinition, result);
 
             // TODO: Detect if FindFilesViaDocuments is needed, e.g. if type is partial or result is empty.
-            FindFilesViaDocuments(target, result);
+            if (result.Count == 0)
+                FindFilesViaDocuments(target, result);
 
             return result;
         }
@@ -182,6 +183,7 @@ namespace ReflectionHelpers
                         out var metadataReaderProvider,
                         out var pdbPath);
 
+
                     _metadataReaderProvider = metadataReaderProvider;
                 }
                 catch (Exception ex)
@@ -212,20 +214,24 @@ namespace ReflectionHelpers
                 _metadataReaderProvider = null;
             }
 
-            // TODO: Remarks in docs says to dispose in a try/catch block,
-            // but what exception should catch and what do do?
-            // https://docs.microsoft.com/en-us/dotnet/api/system.io.filestream?view=netcore-3.1#remarks
-            if (_dllFileReader is { })
+            try
             {
-                _dllFileReader.Dispose();
-                _dllFileReader = null;
-            }
+                // Remarks in docs says to dispose in a try/catch block:
+                // https://docs.microsoft.com/en-us/dotnet/api/system.io.filestream?view=netcore-3.1#remarks
+                if (_dllFileReader is { })
+                {
+                    _dllFileReader.Dispose();
+                    _dllFileReader = null;
+                }
 
-            if (_pdbFileReader is { })
-            {
-                _pdbFileReader.Dispose();
-                _pdbFileReader = null;
+                if (_pdbFileReader is { })
+                {
+                    _pdbFileReader.Dispose();
+                    _pdbFileReader = null;
+                }
             }
+            catch
+            { }
         }
     }
 }

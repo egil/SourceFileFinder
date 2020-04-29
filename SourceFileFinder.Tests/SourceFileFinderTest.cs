@@ -102,7 +102,17 @@ namespace ReflectionHelpers
             result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.2.cs"));
         }
 
-        // No portable PDB file was found for assembly
-        // test with pdbonly and Deterministic  builds
+        // Tests TODO:
+        // - Create test of classes with sequence points in documents (you can make one. just switch #line's back and forth a few times or just use #line hidden in the middle and then restore to non hidden)
+        // - No portable PDB file was found for assembly
+        // - Partial class without method in one or more files
+        // - Multiple classes in same file
+        // - Create test with assembly compiled using full and pdb-only format. Most likely need a windows pdb reader (https://github.com/dotnet/symreader)
+        
+        // none = no debug data
+        // pdbonly = Windows PDB format in a .pdb file
+        // full = Windows PDB format embedded in the .dll file (this is in the legacy csproj default template, I think)
+        // portable = IL PDB format in a .pdb file (this is the .NET SDK default)
+        // embedded = IL PDB format embedded in the .dll file
     }
 }
