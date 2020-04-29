@@ -36,7 +36,7 @@ namespace ReflectionHelpers
         {
             using var sut = CreateSut();
 
-            Should.Throw<ArgumentNullException>(() => sut.Find(default(Type)!))
+            Should.Throw<ArgumentNullException>(() => sut.Find(default!))
                 .ParamName.ShouldNotBeEmpty();
         }
 

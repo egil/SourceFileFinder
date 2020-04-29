@@ -6,7 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>SourceFileFinder</PackageId>
     <Title>SourceFileFinder</Title>
-    <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in assembly through a portable PDF file.</Description>
+    <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in assembly through a portable PDB.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/egil/SourceFileFinder</PackageProjectUrl>
     <RepositoryUrl>https://github.com/egil/SourceFileFinder.git</RepositoryUrl>
@@ -17,13 +17,17 @@
     <Authors>Egil Hansen</Authors>
     <Company>Egil Hansen</Company>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
