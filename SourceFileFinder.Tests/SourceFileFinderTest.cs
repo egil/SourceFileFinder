@@ -64,7 +64,6 @@ namespace ReflectionHelpers
             Should.Throw<InvalidOperationException>(() => sut.Find(target));
         }
 
-
         [Theory(DisplayName = "Find(type) can find source file for class")]
         [InlineData(typeof(EmptyClass))]
         [InlineData(typeof(ClassWithLineHidden))]
@@ -86,7 +85,7 @@ namespace ReflectionHelpers
             var result = sut.Find(target);
 
             result.Single()
-                .ShouldEndWith($@"SourceFileFinder.Tests\Cases\{target.Name}.cs");
+                .ShouldEndWith($@"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.cs");
         }
 
         [Fact(DisplayName = "Find(type), where type is partial with a method in each partial class, " +
@@ -99,8 +98,8 @@ namespace ReflectionHelpers
             var result = sut.Find(target);
 
             result.Count.ShouldBe(2);
-            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.1.cs"));
-            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests\Cases\{target.Name}.2.cs"));
+            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.1.cs"));
+            result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.2.cs"));
         }
 
         // No portable PDB file was found for assembly

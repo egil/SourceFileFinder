@@ -128,7 +128,7 @@ namespace ReflectionHelpers
                 result.Add(filename);
             }
         }
-        
+
         private void FindFilesViaDocuments(Type target, List<string> result)
         {
             foreach (var handle in PdbReader.Documents)
@@ -150,13 +150,13 @@ namespace ReflectionHelpers
                 if (result.Contains(filename))
                     continue;
 
-                if(language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
+                if (language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
                     result.Add(filename);
 
-                if(language == VBLanguage )
+                if (language == VBLanguage)
                     throw new NotImplementedException("Support for Visual Basic not implemented yet.");
-                if(language == FSharpLanguage)
-                    throw new NotImplementedException("Support for F# not implemented yet.");                
+                if (language == FSharpLanguage)
+                    throw new NotImplementedException("Support for F# not implemented yet.");
             }
         }
 
@@ -183,8 +183,6 @@ namespace ReflectionHelpers
                         out var pdbPath);
 
                     _metadataReaderProvider = metadataReaderProvider;
-                    _metadataReader = _pEReader.GetMetadataReader();
-                    _pdbReader = _metadataReaderProvider.GetMetadataReader();
                 }
                 catch (Exception ex)
                 {
@@ -193,6 +191,9 @@ namespace ReflectionHelpers
 
                 if (!pdbFound)
                     throw new InvalidOperationException($"No portable PDB was found for the assembly '{SearchAssembly.FullName}' with path '{SearchAssembly.Location}'.");
+
+                _metadataReader = _pEReader.GetMetadataReader();
+                _pdbReader = _metadataReaderProvider?.GetMetadataReader();
             }
         }
 
