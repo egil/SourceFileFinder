@@ -104,6 +104,8 @@ namespace ReflectionHelpers
 
         // Tests TODO:
         // - Create test of classes with sequence points in documents (you can make one. just switch #line's back and forth a few times or just use #line hidden in the middle and then restore to non hidden)
+		//   it may be required that you add #line somefakeline "somefakefile" too. I believe hidden lines create sequence points but this is still a single document
+		//   "somefakefile" should be a full path.
         // - No portable PDB file was found for assembly
         // - Partial class without method in one or more files
         // - Multiple classes in same file
