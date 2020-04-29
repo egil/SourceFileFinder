@@ -9,8 +9,11 @@ using var finder = new SourceFileFinder(target.Assembly);
 IReadOnlyList<string> fileNames = finder.Find(target);
 ```
 
+## Try it
+Download from nuget: https://www.nuget.org/packages/SourceFileFinder/
+
 ## Limitations / Issues
-Finding files for assemblies compiled with following flags is currently not possible:
+Finding files for assemblies compiled with following flags is currently not possible, as they produce PDBs in the Windows format:
 - `<DebugType>none</DebugType>`
 - `<DebugType>full</DebugType>`
 - `<DebugType>pdbonly</DebugType>`
