@@ -2,12 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>ReflectionHelpers</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>SourceFileFinder</PackageId>
+    <Title>SourceFileFinder</Title>
+    <Version>1.0.0-beta-1</Version>
     <Description>A small helper library, that allows you to find the source file of a type at runtime, based on the debug information included in assembly through a portable PDF file.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/egil/SourceFileFinder</PackageProjectUrl>
     <RepositoryUrl>https://github.com/egil/SourceFileFinder.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>#{BRANCH}#</RepositoryBranch>
+    <RepositoryCommit>#{COMMIT}#</RepositoryCommit>
     <PackageTags>c# reflection</PackageTags>
     <Authors>Egil Hansen</Authors>
     <Company>Egil Hansen</Company>
@@ -15,15 +21,10 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <RootNamespace>ReflectionHelpers</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -150,8 +150,13 @@ namespace ReflectionHelpers
                 if (result.Contains(filename))
                     continue;
 
-                if (language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
+                if(language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
                     result.Add(filename);
+
+                if(language == VBLanguage )
+                    throw new NotImplementedException("Support for Visual Basic not implemented yet.");
+                if(language == FSharpLanguage)
+                    throw new NotImplementedException("Support for F# not implemented yet.");                
             }
         }
 
