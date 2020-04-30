@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using ReflectionHelpers.Cases;
 using ReflectionHelpers.Cases.SubCases;
+using ReflectionHelpers.RazorCases;
 using Shouldly;
 using Xunit;
 using Xunit.Sdk;
@@ -36,7 +37,7 @@ namespace ReflectionHelpers
         {
             using var sut = CreateSut();
 
-            Should.Throw<ArgumentNullException>(() => sut.Find(default!))
+            Should.Throw<ArgumentNullException>(() => sut.Find(null!).ToList())
                 .ParamName.ShouldNotBeEmpty();
         }
 
@@ -61,7 +62,7 @@ namespace ReflectionHelpers
             var target = typeof(XunitTestCase);
             using var sut = CreateSut();
 
-            Should.Throw<InvalidOperationException>(() => sut.Find(target));
+            Should.Throw<InvalidOperationException>(() => sut.Find(target).ToList());
         }
 
         [Theory(DisplayName = "Find(type) can find source file for class")]
@@ -71,7 +72,7 @@ namespace ReflectionHelpers
         [InlineData(typeof(NestedEmptyClass))]
         [InlineData(typeof(NestedEmptyClassInNestedNamespace))]
         [InlineData(typeof(ClassWithoutNamespace))]
-        [InlineData(typeof(EmptyClassWithoutNamespace))]        
+        [InlineData(typeof(EmptyClassWithoutNamespace))]
         [InlineData(typeof(ClassWithCtor))]
         [InlineData(typeof(PublicMethodClass))]
         [InlineData(typeof(OverriddenPublicMethodClass))]
@@ -88,6 +89,31 @@ namespace ReflectionHelpers
                 .ShouldEndWith($@"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.cs");
         }
 
+        [Theory(DisplayName = "Find(type) can find source file for generated razor component with one or more methods")]
+        [InlineData(typeof(ComponentWithMethod))]
+        public void FindsGeneratedRazorFilesWithMethods(Type target)
+        {
+            using var sut = CreateSut();
+
+            var result = sut.Find(target).ToList();
+
+            result.Count.ShouldBe(2);
+            result.ShouldContain(file => file.EndsWith($@"SourceFileFinder.Tests{Path.DirectorySeparatorChar}RazorCases{Path.DirectorySeparatorChar}{target.Name}.razor"));
+            result.ShouldContain(file => file.EndsWith($@"{Path.DirectorySeparatorChar}RazorCases{Path.DirectorySeparatorChar}{target.Name}.razor.g.cs"));
+        }
+
+        [Theory(DisplayName = "Find(type) can find source file for generated razor component without methods")]
+        [InlineData(typeof(ComponentWithoutMethods))]
+        public void FindsGeneratedRazorFilesWithoutMethods(Type target)
+        {
+            using var sut = CreateSut();
+
+            var result = sut.Find(target);
+
+            result.ShouldHaveSingleItem().ShouldEndWith($@"{Path.DirectorySeparatorChar}RazorCases{Path.DirectorySeparatorChar}{target.Name}.razor.g.cs");
+        }
+
+
         [Fact(DisplayName = "Find(type), where type is partial with a method in each partial class, " +
                             " returns all source files")]
         public void Test110()
@@ -95,22 +121,21 @@ namespace ReflectionHelpers
             var target = typeof(PartialClassWithMethod);
             using var sut = CreateSut();
 
-            var result = sut.Find(target);
+            var result = sut.Find(target).ToList();
 
-            result.Count.ShouldBe(2);
             result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.1.cs"));
             result.ShouldContain(file => file.EndsWith(@$"SourceFileFinder.Tests{Path.DirectorySeparatorChar}Cases{Path.DirectorySeparatorChar}{target.Name}.2.cs"));
         }
 
         // Tests TODO:
         // - Create test of classes with sequence points in documents (you can make one. just switch #line's back and forth a few times or just use #line hidden in the middle and then restore to non hidden)
-		//   it may be required that you add #line somefakeline "somefakefile" too. I believe hidden lines create sequence points but this is still a single document
-		//   "somefakefile" should be a full path.
+        //   it may be required that you add #line somefakeline "somefakefile" too. I believe hidden lines create sequence points but this is still a single document
+        //   "somefakefile" should be a full path.
         // - No portable PDB file was found for assembly
         // - Partial class without method in one or more files
         // - Multiple classes in same file
         // - Create test with assembly compiled using full and pdb-only format. Most likely need a windows pdb reader (https://github.com/dotnet/symreader)
-        
+
         // none = no debug data
         // pdbonly = Windows PDB format in a .pdb file
         // full = Windows PDB format embedded in the .dll file (this is in the legacy csproj default template, I think)

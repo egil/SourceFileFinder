@@ -76,24 +76,25 @@ namespace ReflectionHelpers
         /// </summary>
         /// <param name="target">Type whose source to attempt to find.</param>
         /// <returns>A list of files the <paramref name="target"/> type is defined in.</returns>
-        public IReadOnlyList<string> Find(Type target)
+        public IEnumerable<string> Find(Type target)
         {
             if (target is null)
                 throw new ArgumentNullException(nameof(target));
             if (target.Assembly != SearchAssembly)
                 throw new InvalidOperationException($"The type '{target.FullName}' does not belong to finder's search assembly '{SearchAssembly.FullName}'.");
 
-            var result = new List<string>();
-
             var typeDefinition = GetTypeDefinition(target);
 
-            FindFilesViaMethods(typeDefinition, result);
+            var fileTracker = new HashSet<string>();
 
-            // TODO: Detect if FindFilesViaDocuments is needed, e.g. if type is partial or result is empty.
-            if (result.Count == 0)
-                FindFilesViaDocuments(target, result);
-
-            return result;
+            foreach (var file in FindFilesViaMethods(typeDefinition, fileTracker))
+            {
+                yield return file;
+            }
+            foreach (var file in FindFilesViaDocuments(target, fileTracker))
+            {
+                yield return file;
+            }
         }
 
         private TypeDefinition GetTypeDefinition(Type target)
@@ -102,9 +103,8 @@ namespace ReflectionHelpers
             return MetadataReader.GetTypeDefinition(typeDefinitionHandle);
         }
 
-        private void FindFilesViaMethods(TypeDefinition typeDefinition, List<string> result)
+        private IEnumerable<string> FindFilesViaMethods(TypeDefinition typeDefinition, HashSet<string> fileTracker)
         {
-
             foreach (var handle in typeDefinition.GetMethods())
             {
                 if (handle.IsNil)
@@ -120,17 +120,19 @@ namespace ReflectionHelpers
 
                 var filename = PdbReader.GetString(doc.Name);
 
-                if (result.Contains(filename))
+                if (fileTracker.Contains(filename))
                     continue;
+                else
+                    fileTracker.Add(filename);
 
                 if (!File.Exists(filename))
                     continue;
 
-                result.Add(filename);
+                yield return filename;
             }
         }
 
-        private void FindFilesViaDocuments(Type target, List<string> result)
+        private IEnumerable<string> FindFilesViaDocuments(Type target, HashSet<string> fileTracker)
         {
             foreach (var handle in PdbReader.Documents)
             {
@@ -148,11 +150,16 @@ namespace ReflectionHelpers
                 var language = PdbReader.GetGuid(doc.Language);
                 var filename = PdbReader.GetString(doc.Name);
 
-                if (result.Contains(filename))
+                if (fileTracker.Contains(filename))
                     continue;
+                else
+                    fileTracker.Add(filename);
 
                 if (language == CSharpLanguage && _csharpTypeLocator.CsharpDocumentContainsType(filename, target))
-                    result.Add(filename);
+                {
+                    yield return filename;
+                    continue;
+                }
 
                 if (language == VBLanguage)
                     throw new NotImplementedException("Support for Visual Basic not implemented yet.");
