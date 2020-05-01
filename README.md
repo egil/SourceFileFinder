@@ -6,7 +6,7 @@ var target = typeof(MyType);
 
 using var finder = new SourceFileFinder(target.Assembly);
 
-IReadOnlyList<string> fileNames = finder.Find(target);
+IEnumerable<string> fileNames = finder.Find(target);
 ```
 
 ## Try it
