@@ -28,7 +28,7 @@ jobs:
       - name: Building and verifying library
         run: |
           dotnet restore
-          dotnet build -c Release --no-restore -p:version=$VERSION -p:RepositoryBranch=$BRANCH -p:ContinuousIntegrationBuild=true
+          dotnet build -c Release --no-restore -p:version=$VERSION -p:RepositoryBranch=$BRANCH
           dotnet test --no-restore --verbosity normal /nowarn:CS1591
       - name: Creating library package
-        run: dotnet pack -c Release --no-restore -o ${GITHUB_WORKSPACE}/lib -p:version=$VERSION -p:RepositoryBranch=$BRANCH -p:ContinuousIntegrationBuild=true /nowarn:CS1591
+        run: dotnet pack -c Release --no-restore -o ${GITHUB_WORKSPACE}/lib -p:version=$VERSION -p:RepositoryBranch=$BRANCH /nowarn:CS1591
