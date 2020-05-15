@@ -12,7 +12,6 @@
     <RepositoryUrl>https://github.com/egil/SourceFileFinder.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryBranch>#{BRANCH}#</RepositoryBranch>
-    <RepositoryCommit>#{COMMIT}#</RepositoryCommit>
     <PackageTags>c# reflection</PackageTags>
     <Authors>Egil Hansen</Authors>
     <Company>Egil Hansen</Company>
