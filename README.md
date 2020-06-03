@@ -14,14 +14,14 @@ Download from nuget: https://www.nuget.org/packages/SourceFileFinder/
 
 ## Limitations / Issues
 
-This project forces the debug settings of consuming projects to be
+This project forces (via an included `.targets` file) the debug settings of consuming projects to be
 
 ```
 <DebugSymbols>true</DebugSymbols>
 <DebugType>embedded</DebugType>
 ```
 
-This avoid issues with other `DebugType` settings (`none`, `full`, and `pdbonly`)that produce PDBs in the Windows format.
+This avoid issues with other `DebugType` settings (`none`, `full`, and `pdbonly`) that produce PDBs in the Windows format.
 
 
 ## Contributors
