@@ -2,8 +2,7 @@ name: CI
 
 on:
   push:
-    paths-ignore:
-    - '.github/**'
+  pull_request:  
 
 env:
   VERSION: 1337.0.0
