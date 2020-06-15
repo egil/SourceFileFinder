@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+</Project>

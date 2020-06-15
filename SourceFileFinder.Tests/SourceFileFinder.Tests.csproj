@@ -31,4 +31,5 @@
     <ProjectReference Include="..\SourceFileFinder\SourceFileFinder.csproj" />
   </ItemGroup>
 
+  <Import Project="$(ProjectDir)..\SourceFileFinder\build.targets" />
 </Project>
