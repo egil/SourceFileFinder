@@ -22,12 +22,12 @@ namespace ReflectionHelpers
 
         private readonly CSharpTypeLocator _csharpTypeLocator = new CSharpTypeLocator();
 
-        private FileStream? _dllFileReader = null;
-        private FileStream? _pdbFileReader = null;
-        private PEReader? _pEReader = null;
-        private MetadataReaderProvider? _metadataReaderProvider = null;
-        private MetadataReader? _metadataReader = null;
-        private MetadataReader? _pdbReader = null;
+        private FileStream? _dllFileReader;
+        private FileStream? _pdbFileReader;
+        private PEReader? _pEReader;
+        private MetadataReaderProvider? _metadataReaderProvider;
+        private MetadataReader? _metadataReader;
+        private MetadataReader? _pdbReader;
 
         /// <summary>
         /// Gets the MetadataReader for the <see cref="SearchAssembly"/>.
