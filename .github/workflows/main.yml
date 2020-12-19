@@ -1,0 +1,54 @@
+name: "CI/CD"
+
+on:
+  pull_request:
+  push:
+  release:
+    types:
+      - published
+  
+jobs:  
+  build-test:
+    name: Build and test
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - uses: dotnet/nbgv@master
+        with:
+          setAllVars: true
+
+      - name: Building and verifying library
+        run: |          
+          dotnet build -c Debug /nowarn:CS1591  /p:UseSourceLink=true
+          dotnet test -c Debug --no-build /nowarn:CS1591 /p:CollectCoverage=true /p:CoverletOutput=./coverage/ /p:CoverletOutputFormat=opencover /p:ExcludeByAttribute=\"Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute\" /p:UseSourceLink=true
+
+  publish-nuget-packages:
+    if: github.event_name == 'release'
+    needs: [build-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - uses: dotnet/nbgv@master
+        with:
+
+      - name: Creating library package for release
+        run: dotnet pack -c Release -o ${GITHUB_WORKSPACE}/packages -p:RepositoryBranch=master -p:ContinuousIntegrationBuild=true /p:PublicRelease=true
+
+      - name: Push packages to NuGet
+        run: dotnet nuget push ${GITHUB_WORKSPACE}/packages/'*.nupkg' -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols true
