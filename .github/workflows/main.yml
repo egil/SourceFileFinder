@@ -46,6 +46,7 @@ jobs:
 
       - uses: dotnet/nbgv@master
         with:
+          setAllVars: true
 
       - name: Creating library package for release
         run: dotnet pack -c Release -o ${GITHUB_WORKSPACE}/packages -p:RepositoryBranch=master -p:ContinuousIntegrationBuild=true /p:PublicRelease=true
