@@ -20,7 +20,7 @@ namespace ReflectionHelpers
         private static readonly Guid FSharpLanguage = Guid.Parse("ab4f38c9-b6e6-43ba-be3b-58080b2ccce3");
         private static readonly Guid VBLanguage = Guid.Parse("3a12d0b8-c26c-11d0-b442-00a0244a1dd2");
 
-        private readonly CSharpTypeLocator _csharpTypeLocator = new CSharpTypeLocator();
+        private readonly CSharpTypeLocator _csharpTypeLocator = new();
 
         private FileStream? _dllFileReader;
         private FileStream? _pdbFileReader;
@@ -208,7 +208,6 @@ namespace ReflectionHelpers
 
 
         /// <inheritdoc/>
-        [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Dispose should not throw... right?")]
         public void Dispose()
         {
             if (_pEReader is { })
